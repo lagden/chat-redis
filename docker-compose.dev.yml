@@ -1,0 +1,52 @@
+version: '3.6'
+services:
+  traefik:
+    container_name: chat_traefik
+    image: traefik:1.7.4-alpine
+    command: --api --docker
+    ports:
+      - '80:80'
+      - '8080:8080'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  redis:
+    container_name: chat_redis
+    image: redis:5-alpine
+    networks:
+      - chat-net
+
+  app:
+    build:
+      context: ./
+      args:
+        NODE_ENV: dev
+        PORT: ${PORT:-3000}
+    container_name: chat_app_dev
+    image: chat_app:dev
+    command: ["npm", "start"]
+    env_file:
+     - ./.env
+    environment:
+      - NODE_ENV=dev
+      - DEBUG_COLORS=1
+      - DEBUG=websocket_chat:*
+      - CIPHER_KEY=NimbleRulezz
+      - TADASHI_SECRET_KEY_JWT=32ee8b3612baf7912ff05d906a51313a
+      - REDIS=redis:6379
+      - DOMAIN=http://chat.local
+    labels:
+      - 'traefik.frontend.rule=Host:chat.local'
+      - 'traefik.backend=chat'
+    ports:
+      - ${LOCALPORT:-3333}:${PORT:-3000}
+    volumes:
+      - ./src:/home/node/app/src
+      - ./index.js:/home/node/app/index.js
+    networks:
+      - chat-net
+    depends_on:
+      - redis
+
+networks:
+  chat-net:

@@ -1,0 +1,49 @@
+{
+  "name": "chat-redis",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "pretest": "xo",
+    "test": "ava --serial",
+    "start": "node index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@tadashi/jwt": "2.4.0",
+    "debug": "4.1.0",
+    "ioredis": "4.2.0",
+    "koa-app-base": "3.4.0",
+    "koa-bodyparser": "4.2.1",
+    "koa-compose": "4.1.0",
+    "koa-router": "7.4.0",
+    "koa-static": "5.0.0",
+    "uuid": "3.3.2",
+    "ws": "6.1.0"
+  },
+  "devDependencies": {
+    "ava": "0.25.0",
+    "xo": "0.23.0"
+  },
+  "xo": {
+    "envs": [
+      "node"
+    ],
+    "semicolon": false,
+    "rules": {
+      "camelcase": [
+        "error",
+        {
+          "properties": "never"
+        }
+      ],
+      "capitalized-comments": 0
+    }
+  },
+  "ava": {
+    "require": [
+      "./test/helpers/setup.js"
+    ]
+  }
+}
