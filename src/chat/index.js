@@ -14,58 +14,21 @@ function chat(ws, req) {
 	const {_data, _id: id} = req
 	const _id = _data.id
 
-	// Set os dados do websocket
 	ws._id = _id
 	ws._data = _data
 	ws._isAlive = true
 
-	const user = createClient(ws).createRedis()
+	const user = createClient(ws)
+	const userChannel = `c:${user.ws()._data.empresa}:i:${user.ws()._data.id}`
 
-	// escrever o user nos canais
-	// fazer tratamento no onMessage
-
-	const handleMessage = (ch, data) => {
-		try {
-			user.ws().send(data)
-		} catch (error) {
-			debug.error(error)
-		}
-	}
-	user.pub().on('message', handleMessage)
-
-	const off = () => {
-		user.ws()
-			.removeAllListeners('message', onMessage)
-			.removeAllListeners('close', onClose)
-			.removeAllListeners('error', onError)
-			.removeAllListeners('pong', onPong)
-	}
-
-	const onMessage = m => {
-		user.pub().publish(m)
-	}
-
-	const onClose = (code, message = false) => {
-		debug.ws(`onClose | Disconnection: ${code}${message ? `, ${message}` : ''}`)
-	}
-
-	const onError = error => {
-		debug.error('onError | Connection error', error)
-	}
-
-	const onPong = () => {
-		user.ws()._isAlive = true
-	}
-
-	// Escuta os eventos
-	user.ws()
-		.on('message', onMessage)
-		.on('close', onClose)
-		.on('error', onError)
-		.on('pong', onPong)
-
-	// Liga o heartbeat
-	user.heartbeat(5000)
+	user.createRedis()
+			.subscribe(userChannel)
+			.redisOn('message', user.redisOnMessage(user))
+			.wsOn('message', user.wsOnMessage(user))
+			.wsOn('close', user.wsOnClose(user))
+			.wsOn('pong', user.wsOnPong(user))
+			.wsOn('error', user.wsOnError)
+			.wsHeartbeat()
 }
 
 module.exports = chat

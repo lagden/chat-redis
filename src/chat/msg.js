@@ -21,17 +21,17 @@ const msg = o => {
 			this.punsubscribe()
 			pub.disconnect()
 			sub.disconnect()
-			return this
 		},
 		publish(ch, data) {
-			pub.publish(ch, _data)
+			debug.redis(`publish: ${ch} ${data}`)
+			pub.publish(ch, data)
 			return this
 		},
 		subscribe(ch) {
+			debug.redis(`subscribe: ${ch}`)
 			if (channels.includes(ch)) {
 				return this
 			}
-
 			sub.subscribe(ch, (error, count) => {
 				if (error) {
 					throw error
@@ -39,12 +39,12 @@ const msg = o => {
 				channels.push(ch)
 				debug.redis(`Subscribed to ${ch} channel: ${count}`)
 			})
+			return this
 		},
 		unsubscribe(ch) {
 			if (!channels.includes(ch)) {
 				return this
 			}
-
 			sub.unsubscribe(ch, (error, count) => {
 				if (error) {
 					throw error
@@ -55,6 +55,7 @@ const msg = o => {
 				}
 				debug.redis(`Unsubscribed to ${ch} channel: ${count}`)
 			})
+			return this
 		},
 		punsubscribe() {
 			sub.punsubscribe('*', (error, count) => {
@@ -62,8 +63,24 @@ const msg = o => {
 					throw error
 				}
 				channels = []
+				sub.removeAllListeners('message')
 				debug.redis(`Unsubscribe to all channels: ${count}`)
 			})
+			return this
+		},
+		redisOn(event, fn) {
+			sub.on(event, fn)
+			return this
+		},
+		redisOnMessage(user) {
+			return (ch, data) => {
+				debug.log('redisOnMessage', ch, data)
+				try {
+					user.ws().send(data)
+				} catch (error) {
+					debug.error('redisOnMessage', error)
+				}
+			}
 		}
 	}}
 }
