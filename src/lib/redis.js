@@ -1,6 +1,7 @@
 'use strict'
 
 const Redis = require('ioredis')
+const debug = require('./debug')
 
 const {
 	REDIS: ADDR = '127.0.0.1:32768'
@@ -15,7 +16,7 @@ function splitCommaDelimitedAddresses(addresses) {
 }
 
 const addresses = splitCommaDelimitedAddresses(ADDR)
-console.log(ADDR)
+debug.log('Redis ADDR', ADDR)
 
 let redis
 

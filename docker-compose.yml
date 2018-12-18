@@ -13,20 +13,17 @@ services:
   redis:
     container_name: chat_redis
     image: redis:5-alpine
-    networks:
-      - chat-net
+    # networks:
+    #   - chat-net
 
-  app:
+  chat:
     build:
       context: ./
       args:
         NODE_ENV: dev
         PORT: ${PORT:-3000}
-    container_name: chat_app_dev
-    image: chat_app:dev
+    container_name: chat_app
     command: ["npm", "start"]
-    env_file:
-     - ./.env
     environment:
       - NODE_ENV=dev
       - DEBUG_COLORS=1
@@ -38,15 +35,15 @@ services:
     labels:
       - 'traefik.frontend.rule=Host:chat.local'
       - 'traefik.backend=chat'
-    ports:
-      - ${LOCALPORT:-3333}:${PORT:-3000}
+    # ports:
+    #   - ${LOCALPORT:-3333}:${PORT:-3000}
     volumes:
       - ./src:/home/node/app/src
       - ./index.js:/home/node/app/index.js
-    networks:
-      - chat-net
+    # networks:
+    #   - chat-net
     depends_on:
       - redis
 
-networks:
-  chat-net:
+# networks:
+#   chat-net:
